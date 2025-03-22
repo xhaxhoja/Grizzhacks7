@@ -36,11 +36,7 @@ public class HostileSpawner : MonoBehaviour
         // Instantiate hostile object
         GameObject hostile = Instantiate(hostilePrefab, spawnPosition, Quaternion.identity);
 
-        // Random movement direction (angle in degrees)
-        float randomAngle = Random.Range(0f, 360f);
-        Vector3 direction = new Vector3(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle), 0).normalized;
-
-        // Assign the movement script to the spawned hostile
-        hostile.AddComponent<HostileMovement>().Initialize(direction, moveSpeed, mainCamera);
+        // Initialize with the position, move speed, and camera reference
+       // hostile.GetComponent<HostileMovement>().Initialize(spawnPosition, mainCamera);
     }
 }
