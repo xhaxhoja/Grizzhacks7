@@ -1,0 +1,9 @@
+# Unity specific
+Library/
+Temp/
+Obj/
+Build/
+BuildPlayer/
+UserSettings/
+.vs/
+.vscode/
