@@ -9,7 +9,8 @@ public class Shmoovement : MonoBehaviour
     public float maxDashSpeed = 35f;
     public float dashDuration = 0.15f;
     public float maxChargeTime = 1.5f;
-    public float dashCooldown = 0.5f; // Strict cooldown
+    public float dashCooldown = 0.5f;
+    public float rotationSpeed = 5f; // Smooth turning speed
 
     private Rigidbody2D rb;
     private Collider2D col;
@@ -21,7 +22,6 @@ public class Shmoovement : MonoBehaviour
     private float dashEndTime;
     private float dashCooldownTimer = 0f;
 
-    private LineRenderer lineRenderer;
     private GameObject cooldownBar;
     private Image cooldownFill;
 
@@ -31,17 +31,7 @@ public class Shmoovement : MonoBehaviour
         col = GetComponent<Collider2D>();
         rb.gravityScale = 0f;
 
-        // Dash indicator setup
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.startWidth = 0.05f;
-        lineRenderer.endWidth = 0.05f;
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = Color.cyan;
-        lineRenderer.endColor = Color.blue;
-        lineRenderer.positionCount = 2;
-        lineRenderer.enabled = false;
-
-        // Cooldown UI setup
+        // Setup cooldown UI
         SetupCooldownIndicator();
     }
 
@@ -49,8 +39,8 @@ public class Shmoovement : MonoBehaviour
     {
         HandleInput();
         HandleCharge();
-        UpdateDashIndicator();
         UpdateCooldown();
+        RotateTowardsMovement();
     }
 
     void FixedUpdate()
@@ -76,47 +66,41 @@ public class Shmoovement : MonoBehaviour
     {
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveY = Input.GetAxisRaw("Vertical");
-
         moveDirection = new Vector2(moveX, moveY).normalized;
     }
 
     void HandleCharge()
     {
-        if (isCooldown) return; // Prevents dashing if on cooldown
+        if (isCooldown) return; // Prevent dashing during cooldown
 
         if (Input.GetKey(KeyCode.Space))
         {
             isCharging = true;
             chargeTime += Time.deltaTime;
             chargeTime = Mathf.Clamp(chargeTime, 0f, maxChargeTime);
-            lineRenderer.enabled = true;
         }
 
         if (Input.GetKeyUp(KeyCode.Space) && isCharging)
         {
             isCharging = false;
             isDashing = true;
-            isCooldown = true; // Start cooldown immediately
+            isCooldown = true;
             col.enabled = false;
+
             float dashSpeed = Mathf.Lerp(minDashSpeed, maxDashSpeed, chargeTime / maxChargeTime);
             rb.linearVelocity = moveDirection * dashSpeed;
             dashEndTime = Time.time + dashDuration;
             chargeTime = 0f;
-            lineRenderer.enabled = false;
-
-            StartCooldown(); // Start cooldown right after dashing
         }
     }
 
-    void UpdateDashIndicator()
+    void RotateTowardsMovement()
     {
-        if (isCharging && moveDirection != Vector2.zero)
+        if (moveDirection != Vector2.zero)
         {
-            float dashDistance = Mathf.Lerp(minDashSpeed, maxDashSpeed, chargeTime / maxChargeTime) * dashDuration;
-            Vector2 dashEndPoint = (Vector2)transform.position + moveDirection * dashDistance;
-
-            lineRenderer.SetPosition(0, transform.position);
-            lineRenderer.SetPosition(1, dashEndPoint);
+            float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+            Quaternion targetRotation = Quaternion.Euler(new Vector3(0, 0, angle));
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
     }
 
@@ -124,8 +108,6 @@ public class Shmoovement : MonoBehaviour
     {
         isCooldown = true;
         dashCooldownTimer = dashCooldown;
-        cooldownFill.fillAmount = 1;
-        cooldownFill.color = Color.red; // Indicate cooldown
     }
 
     void UpdateCooldown()
@@ -133,13 +115,14 @@ public class Shmoovement : MonoBehaviour
         if (isCooldown)
         {
             dashCooldownTimer -= Time.deltaTime;
-            cooldownFill.fillAmount = dashCooldownTimer / dashCooldown; // Fill shrinks over time
+            cooldownFill.fillAmount = 1 - (dashCooldownTimer / dashCooldown);
+            cooldownFill.color = Color.red; // On cooldown
 
             if (dashCooldownTimer <= 0)
             {
                 isCooldown = false;
                 cooldownFill.fillAmount = 1;
-                cooldownFill.color = Color.green; // Ready to dash again
+                cooldownFill.color = Color.green; // Ready to dash
             }
         }
     }
@@ -160,7 +143,7 @@ public class Shmoovement : MonoBehaviour
         Image bg = cooldownBar.AddComponent<Image>();
         bg.color = Color.black;
         RectTransform bgRect = cooldownBar.GetComponent<RectTransform>();
-        bgRect.sizeDelta = new Vector2(0.3f, 0.03f); // Smaller width & height
+        bgRect.sizeDelta = new Vector2(0.3f, 0.03f);
         bgRect.localPosition = new Vector3(0, -0.8f, 0); // Lower position
 
         // Create cooldown fill bar
