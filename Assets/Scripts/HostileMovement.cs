@@ -40,4 +40,23 @@ public class HostileMovement : MonoBehaviour
                 break;
         }
     }
+
+    // Handle collision detection and self-destruction
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        // If this object collides with any other object, destroy both
+        if (gameObject.CompareTag("IndestructibleHostile"))
+        {
+            // You can log or handle other behaviors if needed
+            Debug.Log("Indestructible hostile collided, but will not be destroyed.");
+            return; // Don't do anything else to this object
+        }
+
+        // If it's not an indestructible object, destroy it on collision
+        if (gameObject.CompareTag("IndestructibleHostile"))
+        {
+            Destroy(gameObject);  // Destroy it as usual for other objects
+        }
+    }
+
 }

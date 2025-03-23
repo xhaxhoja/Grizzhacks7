@@ -4,10 +4,10 @@ using System.Collections.Generic;
 public class ObjectSpawner : MonoBehaviour
 {
     public GameObject hostilePrefab;
-    public float baseSpawnInterval = 2f;  // Base time between spawns
+    public float baseSpawnInterval = 10f;  // Base time between spawns
     public Vector2 spawnVelocity = new Vector2(0f, 3f);  // Default velocity
-    public float minSpawnDistance = 1.5f;  // Minimum distance between objects to avoid clipping
-    public float maxNearbyObjects = 3;  // Max number of objects close to each other before preventing spawn
+    public float minSpawnDistance = 2.5f;  // Minimum distance between objects to avoid clipping
+    public float maxNearbyObjects =1;  // Max number of objects close to each other before preventing spawn
 
     private float spawnTimer;  // Timer to manage spawn intervals
     private List<GameObject> activeHostiles = new List<GameObject>();  // List of currently active hostiles
@@ -31,17 +31,43 @@ public class ObjectSpawner : MonoBehaviour
 
             if (CanSpawnHere(transform.position))
             {
+
+
+
+                if (hostilePrefab != null)
+                {
+                    // Spawn the hostile object
+                    GameObject hostile = Instantiate(hostilePrefab, transform.position, Quaternion.identity);
+                    hostile.tag = "idk";  // Change the tag of the spawned object
+                    // Get the HostileMovement component safely
+                    HostileMovement hostileMovement = hostile.GetComponent<HostileMovement>();
+                    if (hostileMovement != null)
+                    {
+                        // Set a random direction for the hostile object (1-4)
+                        int randomDirection = Random.Range(1, 5);
+                        //hostileMovement.direction = randomDirection;
+
+                        // Optionally, set a random velocity if desired
+                        hostileMovement.speed = Random.Range(3f,5f);
+
+                        activeHostiles.Add(hostile);
+                    }
+                    else
+                    {
+                        Debug.LogError("Hostile object spawned without HostileMovement component!");
+                        Destroy(hostile);  // Destroy the object if it doesn't have the necessary component
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Hostile prefab is not assigned in the Inspector.");
+                }
+
                 // Spawn the hostile object
-                GameObject hostile = Instantiate(hostilePrefab, transform.position, Quaternion.identity);
+             
 
-                // Set a random direction for the hostile object (1-4)
-                int randomDirection = Random.Range(1, 5);  // Random direction between 1 and 4
-                //hostile.GetComponent<HostileMovement>().direction = randomDirection;
-
-                // Optionally, set a random velocity if desired
-                hostile.GetComponent<HostileMovement>().speed = Random.Range(3f, 7f);
-
-                activeHostiles.Add(hostile);
+                // Get the HostileMovement component safely
+            
             }
         }
 
@@ -55,7 +81,7 @@ public class ObjectSpawner : MonoBehaviour
 
         foreach (GameObject hostile in activeHostiles)
         {
-            if (Vector3.Distance(spawnPos, hostile.transform.position) < minSpawnDistance)
+            if (hostile != null && Vector3.Distance(spawnPos, hostile.transform.position) < minSpawnDistance)
             {
                 nearbyObjects++;
                 if (nearbyObjects >= maxNearbyObjects) return false;  // Too many objects nearby, don't spawn
@@ -69,13 +95,13 @@ public class ObjectSpawner : MonoBehaviour
         int nearbyObjects = 0;
         foreach (GameObject hostile in activeHostiles)
         {
-            if (Vector3.Distance(transform.position, hostile.transform.position) < minSpawnDistance * 2)
+            if (hostile != null && Vector3.Distance(transform.position, hostile.transform.position) < minSpawnDistance * 2)
             {
                 nearbyObjects++;
             }
         }
 
-        // Make the spawn interval longer if there are more objects close by
-        return baseSpawnInterval + (nearbyObjects * 0.5f);
+        // Increase spawn interval more dramatically based on nearby objects
+        return baseSpawnInterval * (1f + (nearbyObjects * 0.3f));
     }
 }
