@@ -102,6 +102,6 @@ public float maxSpawnDelay;
     {
         // Random delay between the specified range
         spawnDelay = Random.Range(min, max);
-        Debug.Log("Next spawn delay: " + spawnDelay);  // Debug line to confirm the delay
+        //Debug.Log("Next spawn delay: " + spawnDelay);  // Debug line to confirm the delay
     }
 }

@@ -5,6 +5,16 @@ public class PlayerCollision : MonoBehaviour
 {
     public int maxHits = 2; // Player can get hit twice before game over
     private int currentHits = 0;
+    private Rigidbody2D rb;
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            Debug.LogError("Rigidbody2D not found on player!");
+        }
+    }
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -34,6 +44,40 @@ public class PlayerCollision : MonoBehaviour
             {
                 DeleteHealthBar_r();
                 EndGame();
+            }
+        }
+        else if (other.CompareTag("Wall"))
+        {
+            rb.linearVelocity = Vector2.zero;
+            Debug.Log("Player stopped at the wall.");
+        }
+        else if (other.CompareTag("Heal"))
+        {
+
+
+            GameObject enemyInstance = other.gameObject; // Store reference to the instance
+            Destroy(enemyInstance); // Destroy only this specific enemy
+            if (currentHits > 0)
+            {
+                currentHits--;
+            }
+         // Increase hit count
+
+
+
+            if (currentHits == 1)
+            {
+                DeleteHealthBar_g();
+            }
+
+            if (currentHits == 2)
+            {
+                DeleteHealthBar_y();
+            }
+
+            if (currentHits == 3)
+            {
+                DeleteHealthBar_o();
             }
         }
     }

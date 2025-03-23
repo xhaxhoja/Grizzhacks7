@@ -10,6 +10,8 @@ TagManager:
   - healthbar_o
   - healthbar_r
   - healthbar_g
+  - Wall
+  - Heal
   layers:
   - Default
   - TransparentFX
