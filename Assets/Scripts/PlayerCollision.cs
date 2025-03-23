@@ -1,11 +1,17 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; // For restarting the game
+using UnityEngine.UI; // For using the health bar UI element
 
 public class PlayerCollision : MonoBehaviour
 {
     public int maxHits = 2; // Player can get hit twice before game over
     private int currentHits = 0;
+    public Image healthBar;  // Reference to the single UI Image (health bar)
     private Rigidbody2D rb;
+
+    // Width range of the health bar
+    public float minHealthBarWidth = 0f; // Minimum width (0 hits)
+    public float maxHealthBarWidth = 90f; // Maximum width (full health)
 
     void Start()
     {
@@ -14,71 +20,40 @@ public class PlayerCollision : MonoBehaviour
         {
             Debug.LogError("Rigidbody2D not found on player!");
         }
+
+        UpdateHealthBar();  // Initialize the health bar
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("idk")) // Check if the collided object is an enemy
         {
-            GameObject enemyInstance = other.gameObject; // Store reference to the instance
-            Destroy(enemyInstance); // Destroy only this specific enemy
+            Destroy(other.gameObject);
             currentHits++; // Increase hit count
             Debug.Log("Player hit! Hits taken: " + currentHits);
 
-            if (currentHits == 1)
-            {
-                DeleteHealthBar_g();
-            }
+            // Decrease health bar by 1 hit (each hit reduces by 1)
+            UpdateHealthBar();
 
-            if (currentHits == 2)
-            {
-                DeleteHealthBar_y();
-            }
-
-            if (currentHits == 3)
-            {
-                DeleteHealthBar_o();
-            }
-
+            // If health drops to 0 or below, restart the game
             if (currentHits >= maxHits)
             {
-                DeleteHealthBar_r();
                 EndGame();
             }
         }
-        else if (other.CompareTag("Wall"))
+        else if (other.CompareTag("Heal")) // Check if the collided object is a healing object
         {
-            rb.linearVelocity = Vector2.zero;
-            Debug.Log("Player stopped at the wall.");
-        }
-        else if (other.CompareTag("Heal"))
-        {
-
-
-            GameObject enemyInstance = other.gameObject; // Store reference to the instance
-            Destroy(enemyInstance); // Destroy only this specific enemy
+            Destroy(other.gameObject);
+            // Decrease hit count (healing player by 1 hit)
             if (currentHits > 0)
             {
                 currentHits--;
             }
-         // Increase hit count
 
+            Debug.Log("Player healed! Hits remaining: " + (maxHits - currentHits));
 
-
-            if (currentHits == 1)
-            {
-                DeleteHealthBar_g();
-            }
-
-            if (currentHits == 2)
-            {
-                DeleteHealthBar_y();
-            }
-
-            if (currentHits == 3)
-            {
-                DeleteHealthBar_o();
-            }
+            // Update health bar
+            UpdateHealthBar();
         }
     }
 
@@ -88,63 +63,21 @@ public class PlayerCollision : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Restart game
     }
 
-    void DeleteHealthBar_g()
+    // Function to update the health bar width (sizeDelta changes)
+    void UpdateHealthBar()
     {
-        GameObject greenhealthBar = GameObject.FindWithTag("healthbar_g");
-        if (greenhealthBar != null)
+        if (healthBar != null)
         {
-            Destroy(greenhealthBar);
-            Debug.Log("Health bar object deleted!");
-        }
-        else
-        {
-            Debug.Log("No object with tag 'healthbar' found.");
-        }
-    }
+            // Calculate the width based on the current number of hits
+            float healthBarWidth = Mathf.Lerp(minHealthBarWidth, maxHealthBarWidth, (maxHits - currentHits) / (float)maxHits);
 
-    void DeleteHealthBar_y()
-    {
-        GameObject yellowhealthBar = GameObject.FindWithTag("healthbar_y");
-        if (yellowhealthBar != null)
-        {
-            Destroy(yellowhealthBar);
-            Debug.Log("Health bar object deleted!");
+            // Update the health bar width by changing the sizeDelta of the RectTransform
+            RectTransform healthBarRect = healthBar.GetComponent<RectTransform>();
+            healthBarRect.sizeDelta = new Vector2(healthBarWidth, healthBarRect.sizeDelta.y);
         }
         else
         {
-            Debug.Log("No object with tag 'healthbar' found.");
-        }
-    }
-
-    void DeleteHealthBar_o()
-    {
-        GameObject orangehealthBar = GameObject.FindWithTag("healthbar_o");
-        if (orangehealthBar != null)
-        {
-            Destroy(orangehealthBar);
-            Debug.Log("Health bar object deleted!");
-        }
-        else
-        {
-            Debug.Log("No object with tag 'healthbar' found.");
-        }
-    }
-
-    void DeleteHealthBar_r()
-    {
-        GameObject redhealthBar = GameObject.FindWithTag("healthbar_r");
-        if (redhealthBar != null)
-        {
-            Destroy(redhealthBar);
-            Debug.Log("Health bar object deleted!");
-        }
-        else
-        {
-            Debug.Log("No object with tag 'healthbar' found.");
+            Debug.LogWarning("Health bar UI element is missing!");
         }
     }
 }
-
-
-
- 
