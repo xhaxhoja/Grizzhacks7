@@ -6,6 +6,10 @@ TagManager:
   tags:
   - IndestructibleHostile
   - idk
+  - healthbar_y
+  - healthbar_o
+  - healthbar_r
+  - healthbar_g
   layers:
   - Default
   - TransparentFX
@@ -40,6 +44,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Behind
+    uniqueID: 505880335
+    locked: 0
   - name: Background
     uniqueID: 2675082363
     locked: 0

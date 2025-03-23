@@ -21,7 +21,6 @@ public class Shmoovement : MonoBehaviour
     private float dashEndTime;
     private float dashCooldownTimer = 0f;
 
-    private LineRenderer lineRenderer;
     private GameObject cooldownBar;
     private Image cooldownFill;
 
@@ -31,16 +30,6 @@ public class Shmoovement : MonoBehaviour
         col = GetComponent<Collider2D>();
         rb.gravityScale = 0f;
 
-        // Dash indicator setup
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.startWidth = 0.05f;
-        lineRenderer.endWidth = 0.05f;
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = Color.cyan;
-        lineRenderer.endColor = Color.blue;
-        lineRenderer.positionCount = 2;
-        lineRenderer.enabled = false;
-
         // Cooldown UI setup
         SetupCooldownIndicator();
     }
@@ -49,7 +38,6 @@ public class Shmoovement : MonoBehaviour
     {
         HandleInput();
         HandleCharge();
-        UpdateDashIndicator();
         UpdateCooldown();
     }
 
@@ -89,7 +77,6 @@ public class Shmoovement : MonoBehaviour
             isCharging = true;
             chargeTime += Time.deltaTime;
             chargeTime = Mathf.Clamp(chargeTime, 0f, maxChargeTime);
-            lineRenderer.enabled = true;
         }
 
         if (Input.GetKeyUp(KeyCode.Space) && isCharging)
@@ -102,21 +89,8 @@ public class Shmoovement : MonoBehaviour
             rb.linearVelocity = moveDirection * dashSpeed;
             dashEndTime = Time.time + dashDuration;
             chargeTime = 0f;
-            lineRenderer.enabled = false;
 
             StartCooldown(); // Start cooldown right after dashing
-        }
-    }
-
-    void UpdateDashIndicator()
-    {
-        if (isCharging && moveDirection != Vector2.zero)
-        {
-            float dashDistance = Mathf.Lerp(minDashSpeed, maxDashSpeed, chargeTime / maxChargeTime) * dashDuration;
-            Vector2 dashEndPoint = (Vector2)transform.position + moveDirection * dashDistance;
-
-            lineRenderer.SetPosition(0, transform.position);
-            lineRenderer.SetPosition(1, dashEndPoint);
         }
     }
 
